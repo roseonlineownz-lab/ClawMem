@@ -1,0 +1,60 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "timeout 8 \\\\wsl.localhost\\Ubuntu-22.04\\home\\faramix\\ClawMem\\bin\\clawmem hook context-surfacing"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "timeout 5 \\\\wsl.localhost\\Ubuntu-22.04\\home\\faramix\\ClawMem\\bin\\clawmem hook postcompact-inject"
+          },
+          {
+            "type": "command",
+            "command": "timeout 5 \\\\wsl.localhost\\Ubuntu-22.04\\home\\faramix\\ClawMem\\bin\\clawmem hook curator-nudge"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "timeout 5 \\\\wsl.localhost\\Ubuntu-22.04\\home\\faramix\\ClawMem\\bin\\clawmem hook precompact-extract"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "timeout 10 \\\\wsl.localhost\\Ubuntu-22.04\\home\\faramix\\ClawMem\\bin\\clawmem hook decision-extractor"
+          },
+          {
+            "type": "command",
+            "command": "timeout 10 \\\\wsl.localhost\\Ubuntu-22.04\\home\\faramix\\ClawMem\\bin\\clawmem hook handoff-generator"
+          },
+          {
+            "type": "command",
+            "command": "timeout 10 \\\\wsl.localhost\\Ubuntu-22.04\\home\\faramix\\ClawMem\\bin\\clawmem hook feedback-loop"
+          }
+        ]
+      }
+    ]
+  }
+}
