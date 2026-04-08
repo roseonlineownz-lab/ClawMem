@@ -299,6 +299,9 @@ if (process.platform === "darwin") {
 
 function initializeDatabase(db: Database): void {
   sqliteVec.load(db);
+
+  // Set busy_timeout before any other operations to handle locks during recovery
+  db.exec("PRAGMA busy_timeout = 5000");
   db.exec("PRAGMA journal_mode = WAL");
   db.exec("PRAGMA foreign_keys = ON");
   // Set generous busy_timeout during DDL — concurrent Stop hooks (decision-extractor,
