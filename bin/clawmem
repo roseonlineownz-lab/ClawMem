@@ -45,13 +45,13 @@ if [[ -f "$SCRIPT_DIR/../.env" ]]; then
   done < "$SCRIPT_DIR/../.env"
 fi
 
-# GPU inference endpoints — set these to your llama-server instances
-# Embedding (zembed-1 recommended, --embeddings mode, -ub must match -b)
-export CLAWMEM_EMBED_URL="${CLAWMEM_EMBED_URL:-http://localhost:8088}"
-# LLM text generation (qmd-query-expansion-1.7B or similar, /v1/chat/completions)
-export CLAWMEM_LLM_URL="${CLAWMEM_LLM_URL:-http://localhost:8089}"
-# Cross-encoder reranker (zerank-2 recommended, -ub must match -b)
-export CLAWMEM_RERANK_URL="${CLAWMEM_RERANK_URL:-http://localhost:8090}"
+# GPU inference endpoints are opt-in.
+#
+# Older local setups defaulted these to localhost:8088/8089/8090. That is
+# brittle on workstation boot: if the GPU servers are not running, ClawMem
+# repeatedly tries dead remote endpoints before falling back locally. Keep the
+# variables unset unless the user explicitly configured them in the shell or
+# .env.
 # Allow node-llama-cpp to auto-download models if no server is running.
 # Set to "true" in remote/distributed setups to prevent surprise downloads.
 export CLAWMEM_NO_LOCAL_MODELS="${CLAWMEM_NO_LOCAL_MODELS:-false}"
