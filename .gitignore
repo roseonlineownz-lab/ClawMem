@@ -26,3 +26,6 @@ Brain.
 test-beads/
 config.yaml
 dist/
+__pycache__/
+*.pyc
+src/hermes/__pycache__/

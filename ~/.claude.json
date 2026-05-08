@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "clawmem": {
+      "command": "\\\\wsl.localhost\\Ubuntu-22.04\\home\\faramix\\ClawMem\\bin\\clawmem",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}
