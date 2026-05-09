@@ -5,7 +5,7 @@ ClawMem is an on-device context engine and memory system for AI agents. It provi
 
 ## Tech stack
 - TypeScript, Bun runtime
-- SQLite (via better-sqlite3) with FTS5 and vec0 extensions
+- SQLite (via `bun:sqlite`) with FTS5 and vec0 extensions
 - Local LLM via llama-server for embeddings and memory evolution
 
 ## Key files
