@@ -1928,14 +1928,23 @@ export function cleanStaleEmbeddings(db: Database): number {
     SELECT hash || '_' || seq as hash_seq FROM content_vectors WHERE hash IN (${placeholders})
   `).all(...staleHashes) as { hash_seq: string }[];
 
-  // Delete from vectors_vec
+  // Delete from vectors_vec (batched to avoid SQLITE_LIMIT_VARIABLE_NUMBER)
   if (staleVecKeys.length > 0) {
-    const vecPlaceholders = staleVecKeys.map(() => '?').join(',');
-    db.prepare(`DELETE FROM vectors_vec WHERE hash_seq IN (${vecPlaceholders})`).run(...staleVecKeys.map(r => r.hash_seq));
+    const BATCH = 500;
+    for (let i = 0; i < staleVecKeys.length; i += BATCH) {
+      const batch = staleVecKeys.slice(i, i + BATCH);
+      const batchPlaceholders = batch.map(() => '?').join(',');
+      db.prepare(`DELETE FROM vectors_vec WHERE hash_seq IN (${batchPlaceholders})`).run(...batch.map(r => r.hash_seq));
+    }
   }
 
-  // Delete from content_vectors
-  db.prepare(`DELETE FROM content_vectors WHERE hash IN (${placeholders})`).run(...staleHashes);
+  // Delete from content_vectors (batched)
+  const BATCH2 = 500;
+  for (let i = 0; i < staleHashes.length; i += BATCH2) {
+    const batch = staleHashes.slice(i, i + BATCH2);
+    const batchPlaceholders = batch.map(() => '?').join(',');
+    db.prepare(`DELETE FROM content_vectors WHERE hash IN (${batchPlaceholders})`).run(...batch);
+  }
 
   return staleVecKeys.length;
 }

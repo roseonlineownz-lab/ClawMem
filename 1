@@ -1,0 +1,90 @@
+Error: Unknown command: server. Run 'clawmem help' for usage.
+Error: Unknown command: api. Run 'clawmem help' for usage.
+
+ClawMem - Hybrid Agent Memory
+
+Setup:
+  clawmem init                         Initialize ClawMem
+  clawmem bootstrap <path> [--name N]  One-command setup (init+add+update+embed+hooks+mcp)
+  clawmem collection add <path> --name <name>
+  clawmem collection list
+  clawmem collection remove <name>
+  clawmem setup hooks [--remove]       Install/remove Claude Code hooks
+  clawmem setup mcp [--remove]         Register/remove MCP in ~/.claude.json
+  clawmem setup openclaw [--remove]    Show OpenClaw plugin installation steps
+  clawmem install-service [--enable]   Install systemd watcher service
+
+Indexing:
+  clawmem update [--pull] [--embed]    Re-scan collections (--embed auto-embeds)
+  clawmem mine <dir> [-c name] [--embed]  Import conversation exports (Claude, ChatGPT, Slack)
+  clawmem embed [-f]                   Generate fragment embeddings
+  clawmem reindex [--force] [--enrich]  Full re-index (--enrich: run entity extraction + links on all docs)
+  clawmem watch                        File watcher daemon
+  clawmem status                       Show index status
+
+Search:
+  clawmem search <query> [-n N]        BM25 keyword search
+  clawmem vsearch <query> [-n N]       Vector similarity
+  clawmem query <query> [-n N]         Hybrid + rerank (best)
+
+Memory:
+  clawmem list [-n/--limit N] [-c col]  Browse recent documents (--json for machine output)
+  clawmem budget [--session ID]        Token utilization
+  clawmem log [--last N]               Session history
+  clawmem profile                      Show user profile
+  clawmem profile rebuild              Force profile rebuild
+
+Hooks:
+  clawmem hook <name>                  Run hook (stdin JSON)
+  clawmem surface --context --stdin    IO6a: pre-prompt context injection
+  clawmem surface --bootstrap --stdin  IO6b: per-session bootstrap injection
+
+Lifecycle:
+  clawmem lifecycle status             Show lifecycle stats + policy
+  clawmem lifecycle sweep [--dry-run]  Archive stale docs per policy
+  clawmem lifecycle search <query>     Search archived docs (FTS, no restore)
+  clawmem lifecycle restore --query Q  Restore archived docs by keyword
+  clawmem lifecycle restore --collection N  Restore by collection
+  clawmem lifecycle restore --all      Restore all archived docs
+
+Intelligence:
+  clawmem reflect [days]               Cross-session pattern analysis
+  clawmem consolidate [--dry-run]      Merge duplicate low-confidence docs
+  clawmem curate                       Automated maintenance (health, sweep, dedup, hygiene)
+  clawmem diary write <entry> [-t topic]  Write a diary entry (for non-hooked environments)
+  clawmem diary read [-n N] [-a agent]    Read recent diary entries
+
+Integration:
+  clawmem mcp                          Start stdio MCP server
+  clawmem serve [--port 7438] [--host 127.0.0.1]  Start HTTP REST API server
+  clawmem update-context               Regenerate all directory CLAUDE.md files
+  clawmem doctor                       Full health check
+
+Options:
+  -n, --num <N>        Number of results
+  -c, --collection     Filter by collection
+  --json               JSON output
+  --min-score <N>      Minimum score threshold
+  -f, --force          Force re-embed/reindex all
+  --pull               Run update commands before indexing
+
+1055 |  */
+1056 | export function createStore(dbPath?: string, opts?: { readonly?: boolean; busyTimeout?: number }): Store {
+1057 |   const resolvedPath = dbPath || getDefaultDbPath();
+1058 |   const db = opts?.readonly
+1059 |     ? new Database(resolvedPath, { readonly: true })
+1060 |     : new Database(resolvedPath);
+             ^
+SQLiteError: unable to open database file
+      errno: 14,
+ byteOffset: -1,
+       code: "SQLITE_CANTOPEN"
+
+      at new Database (bun:sqlite:260:28)
+      at createStore (\\wsl.localhost\Ubuntu-22.04\home\faramix\ClawMem\src\store.ts:1060:7)
+      at getStore (\\wsl.localhost\Ubuntu-22.04\home\faramix\ClawMem\src\clawmem.ts:70:13)
+      at cmdServe (\\wsl.localhost\Ubuntu-22.04\home\faramix\ClawMem\src\clawmem.ts:1087:13)
+      at main (\\wsl.localhost\Ubuntu-22.04\home\faramix\ClawMem\src\clawmem.ts:1844:15)
+      at \\wsl.localhost\Ubuntu-22.04\home\faramix\ClawMem\src\clawmem.ts:2557:1
+      at loadAndEvaluateModule (2:1)
+
