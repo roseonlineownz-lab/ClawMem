@@ -197,7 +197,7 @@ function tryChatGptJson(data: any): Message[] | null {
   const visited = new Set<string>();
   while (currentId && !visited.has(currentId)) {
     visited.add(currentId);
-    const node = (mapping as any)[currentId];
+    const node: any = (mapping as Record<string, any>)[currentId];
     if (node?.message) {
       const role = node.message.author?.role ?? "";
       const content = node.message.content;
@@ -225,7 +225,7 @@ function trySlackJson(data: any): Message[] | null {
   if (speakers.size < 2) return null;
 
   const messages: Message[] = [];
-  const speakerList = [...speakers];
+  const speakerList = [...speakers] as [string, string, ...string[]];
   const roleMap: Record<string, "user" | "assistant"> = {
     [speakerList[0]]: "user",
     [speakerList[1]]: "assistant",
@@ -316,13 +316,16 @@ export function chunkConversation(conv: NormalizedConversation): ConversationChu
   const { messages, source } = conv;
 
   for (let i = 0; i < messages.length; i++) {
-    if (messages[i].role !== "user") continue;
+    const message = messages[i];
+    if (!message || message.role !== "user") continue;
 
-    const userMsg = messages[i].content;
+    const userMsg = message.content;
     // Collect ALL consecutive assistant messages (handles split replies)
     const assistantParts: string[] = [];
-    while (i + 1 < messages.length && messages[i + 1].role === "assistant") {
-      assistantParts.push(messages[i + 1].content);
+    while (i + 1 < messages.length) {
+      const nextMessage = messages[i + 1];
+      if (!nextMessage || nextMessage.role !== "assistant") break;
+      assistantParts.push(nextMessage.content);
       i++;
     }
     const assistantMsg = assistantParts.join("\n\n");
@@ -346,7 +349,7 @@ export function chunkConversation(conv: NormalizedConversation): ConversationChu
 
 function extractExchangeTitle(userMessage: string, index: number): string {
   // Use the first line/sentence of the user message, capped at 80 chars
-  const firstLine = userMessage.split("\n")[0].trim();
+  const firstLine = (userMessage.split("\n")[0] ?? "").trim();
   if (firstLine.length <= 80) return firstLine;
   return firstLine.slice(0, 77) + "...";
 }
