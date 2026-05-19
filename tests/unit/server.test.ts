@@ -3,25 +3,20 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { unlinkSync } from "fs";
-import { createStore, type Store } from "../../src/store.ts";
+import { type Store } from "../../src/store.ts";
 import { hashContent } from "../../src/indexer.ts";
 import { startServer } from "../../src/server.ts";
+import { createTestStore } from "../helpers/test-store.ts";
 
 let store: Store;
 let server: ReturnType<typeof startServer>;
 let authDocHash: string;
 let handoffDocHash: string;
 let base = "";
-const TEST_DB = `/tmp/clawmem-server-test-${process.pid}.sqlite`;
 
 beforeAll(() => {
-  try { unlinkSync(TEST_DB); } catch {}
-  try { unlinkSync(TEST_DB + "-wal"); } catch {}
-  try { unlinkSync(TEST_DB + "-shm"); } catch {}
-  process.env.INDEX_PATH = TEST_DB;
   delete process.env.CLAWMEM_API_TOKEN;
-  store = createStore(TEST_DB);
+  store = createTestStore();
 
   // Seed test data — use real SHA-256 hashes so docid lookup works (6-char hex prefix)
   const now = new Date().toISOString();
@@ -49,9 +44,6 @@ beforeAll(() => {
 afterAll(() => {
   server.stop(true);
   store.close();
-  try { unlinkSync(TEST_DB); } catch {}
-  try { unlinkSync(TEST_DB + "-wal"); } catch {}
-  try { unlinkSync(TEST_DB + "-shm"); } catch {}
 });
 
 describe("GET /health", () => {
