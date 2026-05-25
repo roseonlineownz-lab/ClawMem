@@ -56,7 +56,14 @@ export function writeRecallEvents(
 ): number {
   if (!sessionId || docs.length === 0) return 0;
 
-  const resolved: { docId: number; queryHash: string; searchScore: number; sessionId: string }[] = [];
+  const resolved: {
+    docId: number;
+    queryHash: string;
+    searchScore: number;
+    sessionId: string;
+    usageId?: number;
+    turnIndex?: number;
+  }[] = [];
 
   for (const doc of docs) {
     const parts = doc.displayPath.split("/");
@@ -82,4 +89,3 @@ export function writeRecallEvents(
   if (resolved.length === 0) return 0;
   return store.insertRecallEvents(resolved);
 }
-

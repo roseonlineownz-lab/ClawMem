@@ -253,8 +253,11 @@ export class ClawMemContextEngine {
     // Lazy import avoids requiring openclaw as a build dependency — the SDK
     // path is resolved at runtime by OpenClaw's plugin loader alias system.
     try {
-      const { delegateCompactionToRuntime } = await import("openclaw/plugin-sdk/core");
-      return await delegateCompactionToRuntime(params as any);
+      const openClawCoreModule = "openclaw/plugin-sdk/core";
+      const { delegateCompactionToRuntime } = await import(openClawCoreModule) as {
+        delegateCompactionToRuntime: (params: unknown) => Promise<CompactResult>;
+      };
+      return await delegateCompactionToRuntime(params);
     } catch (err) {
       this.logger.warn(`clawmem: delegateCompactionToRuntime failed: ${String(err)}`);
       return {

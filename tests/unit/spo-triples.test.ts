@@ -1,20 +1,15 @@
 import { describe, it, expect, beforeEach, afterAll } from "bun:test";
-import { createStore, type Store } from "../../src/store.ts";
-import { tmpdir } from "os";
-import { join } from "path";
-import { rmSync } from "fs";
+import { type Store } from "../../src/store.ts";
+import { createTestStore } from "../helpers/test-store.ts";
 
-const TEST_DB = join(tmpdir(), `clawmem-spo-test-${Date.now()}.sqlite`);
 let store: Store;
 
 beforeEach(() => {
-  try { rmSync(TEST_DB); } catch {}
-  store = createStore(TEST_DB);
+  store = createTestStore();
 });
 
 afterAll(() => {
   store?.close();
-  try { rmSync(TEST_DB); } catch {}
 });
 
 // ─── addTriple ─────────────────────────────────────────────────────

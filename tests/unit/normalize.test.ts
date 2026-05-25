@@ -37,8 +37,8 @@ describe("Claude Code JSONL", () => {
     expect(result).not.toBeNull();
     expect(result!.format).toBe("claude-code");
     expect(result!.messages).toHaveLength(4);
-    expect(result!.messages[0].role).toBe("user");
-    expect(result!.messages[1].role).toBe("assistant");
+    expect(result!.messages[0]!.role).toBe("user");
+    expect(result!.messages[1]!.role).toBe("assistant");
     cleanup();
   });
 
@@ -52,7 +52,7 @@ describe("Claude Code JSONL", () => {
     const file = writeTemp("blocks.jsonl", jsonl);
     const result = normalizeFile(file);
     expect(result).not.toBeNull();
-    expect(result!.messages[0].content).toBe("Hello");
+    expect(result!.messages[0]!.content).toBe("Hello");
     cleanup();
   });
 
@@ -118,7 +118,7 @@ describe("ChatGPT JSON", () => {
     expect(result).not.toBeNull();
     expect(result!.format).toBe("chatgpt");
     expect(result!.messages).toHaveLength(2);
-    expect(result!.messages[0].content).toBe("What is AI?");
+    expect(result!.messages[0]!.content).toBe("What is AI?");
     cleanup();
   });
 });
@@ -257,9 +257,9 @@ describe("chunkConversation", () => {
 
     const chunks = chunkConversation(conv);
     expect(chunks).toHaveLength(2);
-    expect(chunks[0].body).toContain("Question 1");
-    expect(chunks[0].body).toContain("Answer 1");
-    expect(chunks[1].body).toContain("Question 2");
+    expect(chunks[0]!.body).toContain("Question 1");
+    expect(chunks[0]!.body).toContain("Answer 1");
+    expect(chunks[1]!.body).toContain("Question 2");
   });
 
   it("collects consecutive assistant messages", () => {
@@ -276,9 +276,9 @@ describe("chunkConversation", () => {
 
     const chunks = chunkConversation(conv);
     expect(chunks).toHaveLength(1);
-    expect(chunks[0].body).toContain("Part 1");
-    expect(chunks[0].body).toContain("Part 2");
-    expect(chunks[0].body).toContain("Part 3");
+    expect(chunks[0]!.body).toContain("Part 1");
+    expect(chunks[0]!.body).toContain("Part 2");
+    expect(chunks[0]!.body).toContain("Part 3");
   });
 
   it("handles user-only messages gracefully", () => {

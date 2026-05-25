@@ -3,26 +3,20 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { unlinkSync } from "fs";
-import { createStore, type Store } from "../../src/store.ts";
+import { type Store } from "../../src/store.ts";
 import { hashContent } from "../../src/indexer.ts";
 import { startServer } from "../../src/server.ts";
+import { createTestStore } from "../helpers/test-store.ts";
 
 let store: Store;
 let server: ReturnType<typeof startServer>;
 let authDocHash: string;
 let handoffDocHash: string;
-const TEST_DB = "/tmp/clawmem-server-test.sqlite";
-const PORT = 17438;
-const BASE = `http://127.0.0.1:${PORT}`;
+let base = "";
 
 beforeAll(() => {
-  try { unlinkSync(TEST_DB); } catch {}
-  try { unlinkSync(TEST_DB + "-wal"); } catch {}
-  try { unlinkSync(TEST_DB + "-shm"); } catch {}
-  process.env.INDEX_PATH = TEST_DB;
   delete process.env.CLAWMEM_API_TOKEN;
-  store = createStore(TEST_DB);
+  store = createTestStore();
 
   // Seed test data — use real SHA-256 hashes so docid lookup works (6-char hex prefix)
   const now = new Date().toISOString();
@@ -43,20 +37,18 @@ beforeAll(() => {
   store.insertContent(apiHash, apiBody, now);
   store.insertDocument("test", "notes/api.md", "API Design", apiHash, now, now);
 
-  server = startServer(store, PORT);
+  server = startServer(store, 0);
+  base = `http://127.0.0.1:${server.port}`;
 });
 
 afterAll(() => {
-  server.stop();
+  server.stop(true);
   store.close();
-  try { unlinkSync(TEST_DB); } catch {}
-  try { unlinkSync(TEST_DB + "-wal"); } catch {}
-  try { unlinkSync(TEST_DB + "-shm"); } catch {}
 });
 
 describe("GET /health", () => {
   test("returns ok status", async () => {
-    const res = await fetch(`${BASE}/health`);
+    const res = await fetch(`${base}/health`);
     expect(res.status).toBe(200);
     const data = await res.json() as any;
     expect(data.status).toBe("ok");
@@ -67,7 +59,7 @@ describe("GET /health", () => {
 
 describe("GET /stats", () => {
   test("returns document stats", async () => {
-    const res = await fetch(`${BASE}/stats`);
+    const res = await fetch(`${base}/stats`);
     expect(res.status).toBe(200);
     const data = await res.json() as any;
     expect(data.totalDocuments).toBe(3);
@@ -76,7 +68,7 @@ describe("GET /stats", () => {
 
 describe("POST /search", () => {
   test("searches by keyword", async () => {
-    const res = await fetch(`${BASE}/search`, {
+    const res = await fetch(`${base}/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: "authentication", mode: "keyword" }),
@@ -88,16 +80,17 @@ describe("POST /search", () => {
   });
 
   test("returns error without query", async () => {
-    const res = await fetch(`${BASE}/search`, {
+    const res = await fetch(`${base}/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
     expect(res.status).toBe(400);
+    await res.text();
   });
 
   test("compact mode returns snippets", async () => {
-    const res = await fetch(`${BASE}/search`, {
+    const res = await fetch(`${base}/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: "JWT", compact: true }),
@@ -113,7 +106,7 @@ describe("POST /search", () => {
 describe("GET /documents/:docid", () => {
   test("returns document by docid (6-char hash prefix)", async () => {
     const docid = authDocHash.slice(0, 6);
-    const res = await fetch(`${BASE}/documents/${docid}`);
+    const res = await fetch(`${base}/documents/${docid}`);
     expect(res.status).toBe(200);
     const data = await res.json() as any;
     expect(data.title).toBe("Auth Decision");
@@ -121,15 +114,16 @@ describe("GET /documents/:docid", () => {
   });
 
   test("returns 404 for unknown docid", async () => {
-    const res = await fetch(`${BASE}/documents/zzzzzz`);
+    const res = await fetch(`${base}/documents/zzzzzz`);
     expect(res.status).toBe(404);
+    await res.text();
   });
 });
 
 describe("GET /timeline/:docid", () => {
   test("returns timeline for document", async () => {
     const docid = handoffDocHash.slice(0, 6);
-    const res = await fetch(`${BASE}/timeline/${docid}`);
+    const res = await fetch(`${base}/timeline/${docid}`);
     expect(res.status).toBe(200);
     const data = await res.json() as any;
     expect(data.focus).toBeDefined();
@@ -140,7 +134,7 @@ describe("GET /timeline/:docid", () => {
 
 describe("GET /collections", () => {
   test("returns collection list", async () => {
-    const res = await fetch(`${BASE}/collections`);
+    const res = await fetch(`${base}/collections`);
     expect(res.status).toBe(200);
     const data = await res.json() as any;
     expect(data.count).toBeGreaterThanOrEqual(0);
@@ -149,7 +143,7 @@ describe("GET /collections", () => {
 
 describe("GET /lifecycle/status", () => {
   test("returns lifecycle stats", async () => {
-    const res = await fetch(`${BASE}/lifecycle/status`);
+    const res = await fetch(`${base}/lifecycle/status`);
     expect(res.status).toBe(200);
     const data = await res.json() as any;
     expect(data.active).toBe(3);
@@ -159,7 +153,7 @@ describe("GET /lifecycle/status", () => {
 describe("POST /documents/:docid/pin", () => {
   test("pins a document", async () => {
     const docid = authDocHash.slice(0, 6);
-    const res = await fetch(`${BASE}/documents/${docid}/pin`, {
+    const res = await fetch(`${base}/documents/${docid}/pin`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -172,8 +166,9 @@ describe("POST /documents/:docid/pin", () => {
 
 describe("404 handling", () => {
   test("returns 404 for unknown routes", async () => {
-    const res = await fetch(`${BASE}/nonexistent`);
+    const res = await fetch(`${base}/nonexistent`);
     expect(res.status).toBe(404);
+    await res.text();
   });
 });
 
@@ -190,7 +185,7 @@ describe("auth", () => {
 
 describe("GET /export", () => {
   test("exports all documents", async () => {
-    const res = await fetch(`${BASE}/export`);
+    const res = await fetch(`${base}/export`);
     expect(res.status).toBe(200);
     const data = await res.json() as any;
     expect(data.version).toBe("1.0.0");

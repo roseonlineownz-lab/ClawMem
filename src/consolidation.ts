@@ -659,6 +659,9 @@ export function computeSurprisalScores(
       ).get(doc.hash_seq) as { embedding: Float32Array | number[] } | null;
 
       if (!vecRow?.embedding) continue;
+      const embedding = vecRow.embedding instanceof Float32Array
+        ? vecRow.embedding
+        : new Float32Array(vecRow.embedding);
 
       // Query k+1 nearest neighbors (first result is the doc itself)
       const neighbors = store.db.prepare(`
@@ -667,7 +670,7 @@ export function computeSurprisalScores(
         WHERE embedding MATCH ?
         ORDER BY distance
         LIMIT ?
-      `).all(vecRow.embedding, k + 1) as { distance: number }[];
+      `).all(embedding, k + 1) as { distance: number }[];
 
       // Skip the first result (self, distance ≈ 0) and compute average
       const nonSelf = neighbors.filter(n => n.distance > 0.001);

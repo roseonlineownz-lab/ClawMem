@@ -57,6 +57,8 @@ export interface ClawMemConfig {
   vaults: VaultConfig;
   /** Lifecycle management policy */
   lifecycle?: LifecyclePolicy;
+  /** Directory containing skill-vault markdown observations */
+  skillContentRoot?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -149,7 +151,16 @@ export function loadVaultConfig(): ClawMemConfig {
     }
   }
 
-  // 3. Lifecycle policy (optional)
+  // 3. Skill vault content root (optional)
+  let skillContentRoot: string | undefined;
+  if (typeof parsedYaml?.skill_content_root === "string") {
+    skillContentRoot = resolve(expandHome(parsedYaml.skill_content_root));
+  }
+  if (process.env.CLAWMEM_SKILL_CONTENT_ROOT) {
+    skillContentRoot = resolve(expandHome(process.env.CLAWMEM_SKILL_CONTENT_ROOT));
+  }
+
+  // 4. Lifecycle policy (optional)
   let lifecycle: LifecyclePolicy | undefined;
   if (parsedYaml?.lifecycle && typeof parsedYaml.lifecycle === "object") {
     const lc = parsedYaml.lifecycle;
@@ -162,7 +173,7 @@ export function loadVaultConfig(): ClawMemConfig {
     };
   }
 
-  _cachedConfig = { vaults, lifecycle };
+  _cachedConfig = { vaults, lifecycle, skillContentRoot };
   return _cachedConfig;
 }
 
@@ -181,6 +192,15 @@ export function getVaultPath(vaultName: string): string | undefined {
 export function listVaults(): string[] {
   const config = loadVaultConfig();
   return Object.keys(config.vaults);
+}
+
+/**
+ * Get the markdown content root for the optional skill vault watcher.
+ * Defaults to ~/_clawmem-skills when no config/env override is present.
+ */
+export function getSkillContentRoot(): string {
+  const config = loadVaultConfig();
+  return config.skillContentRoot ?? join(homedir(), "_clawmem-skills");
 }
 
 /**

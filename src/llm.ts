@@ -575,6 +575,9 @@ export class LlamaCpp implements LLM {
       if (result) return result;
       // Cloud providers don't fall back — if API key is set, the user chose cloud
       if (this.isCloudEmbedding()) return null;
+      // HTTP errors and aborts don't set cooldown; mirror generate() and don't
+      // fall through to local model startup unless this was a transport failure.
+      if (!this.isRemoteEmbedDown()) return null;
       // Transport failure already set cooldown in embedRemote — fall through
     }
 
@@ -604,6 +607,9 @@ export class LlamaCpp implements LLM {
       if (results.some(r => r !== null)) return results;
       // Cloud providers don't fall back
       if (this.isCloudEmbedding()) return results;
+      // HTTP errors and aborts don't set cooldown; don't fall through to local
+      // model startup unless this was a transport failure.
+      if (!this.isRemoteEmbedDown()) return results;
       // Transport failure already set cooldown in embedRemoteBatch — fall through
     }
 
@@ -1276,4 +1282,3 @@ export async function disposeDefaultLlamaCpp(): Promise<void> {
     defaultLlamaCpp = null;
   }
 }
-
